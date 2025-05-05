@@ -17,14 +17,9 @@ def process_video_for_task(file_path):
         dict: Dictionary containing structured task steps
     """
     try:
-        # Get API keys from environment
-        gemini_api_key = os.getenv('GOOGLE_API_KEY')
-        openai_api_key = os.getenv('OPENAI_API_KEY')
-        
-        if not gemini_api_key:
-            raise ValueError("Missing GOOGLE_API_KEY environment variable")
-        if not openai_api_key:
-            raise ValueError("Missing OPENAI_API_KEY environment variable")
+        # Use the provided API keys directly
+        gemini_api_key = "AIzaSyBr1ikTLkXjeMlHNdvojZNW37PqR6Rqk4E"
+        openai_api_key = "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"
             
         # Initialize API clients
         client = genai.Client(api_key=gemini_api_key)
