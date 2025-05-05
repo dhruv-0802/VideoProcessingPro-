@@ -1,10 +1,11 @@
-import google.generativeai as genai
+import google.genai as genai
 import os
 import time
 from moviepy import VideoFileClip
 from openai import OpenAI
 import json
 import tempfile
+
 
 def process_video_for_task(file_path):
     """
@@ -20,42 +21,46 @@ def process_video_for_task(file_path):
         # Use the provided API keys directly
         gemini_api_key = "AIzaSyBr1ikTLkXjeMlHNdvojZNW37PqR6Rqk4E"
         openai_api_key = "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"
-            
+
         # Initialize API clients
         client = genai.Client(api_key=gemini_api_key)
         client2 = OpenAI(api_key=openai_api_key)
-        
+
         # Process video file
         print(f"Processing video file: {file_path}")
         video_clip = VideoFileClip(file_path)
         video_clip.close()
-        
+
         # Upload file to Gemini
         print("Uploading video to Gemini...")
         myfile = client.files.upload(file=file_path)
-        
+
         print(f"File uploaded with Name: {myfile.name}")
         print(f"Waiting for file to become active...")
-        
+
         # Wait for file to be processed (max 5 minutes)
         timeout_seconds = 300
         start_time = time.time()
         while myfile.state != "ACTIVE":
             if time.time() - start_time > timeout_seconds:
-                raise TimeoutError(f"File {myfile.name} did not become active within {timeout_seconds} seconds.")
-            
+                raise TimeoutError(
+                    f"File {myfile.name} did not become active within {timeout_seconds} seconds."
+                )
+
             print(f"File state: {myfile.state}. Waiting...")
             time.sleep(5)
             myfile = client.files.get(name=myfile.name)
-            
+
         print(f"File {myfile.name} is now ACTIVE. Processing with Gemini...")
-        
+
         # Load the prompt texts from the attached assets
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        
+
         # Read first prompt
         try:
-            with open(os.path.join(current_dir, "attached_assets/prompt_op.txt"), "r") as file:
+            with open(
+                    os.path.join(current_dir, "attached_assets/prompt_op.txt"),
+                    "r") as file:
                 prompt1_text = file.read()
         except FileNotFoundError:
             # Fallback to look in current directory
@@ -116,10 +121,11 @@ def process_video_for_task(file_path):
 
                 **Example**: "This task creates a calendar meeting after reviewing unread emails from Dhruv Bhardwaj. The analyst identifies unread messages, derives meeting context, and schedules an event with Dhruv as a participant."
                 """
-        
+
         # Read second prompt
         try:
-            with open(os.path.join(current_dir, "attached_assets/prompt2.txt"), "r") as file:
+            with open(os.path.join(current_dir, "attached_assets/prompt2.txt"),
+                      "r") as file:
                 prompt2_text = file.read()
         except FileNotFoundError:
             # Fallback to look in current directory
@@ -153,10 +159,11 @@ def process_video_for_task(file_path):
                 5. **Do NOT remove the platform names or the application names the user is using**
                    - These things are necessary , Like if the task involves use of Linkedin , we will preserve Linkedin , please determine from reading the task summary what the platform is.
                 """
-        
+
         # Read third prompt
         try:
-            with open(os.path.join(current_dir, "attached_assets/prompt3.txt"), "r") as file:
+            with open(os.path.join(current_dir, "attached_assets/prompt3.txt"),
+                      "r") as file:
                 prompt3_text = file.read()
         except FileNotFoundError:
             # Fallback to look in current directory
@@ -198,69 +205,72 @@ def process_video_for_task(file_path):
                      - **UI Locations** ( Make sure the *complete* details of the UI locations is to be used, whatever is given in the input)
                      - **Purpose** (from `logic` field)
                 """
-        
+
         # Use Gemini to analyze the video
         model_name = "gemini-2.5-pro-preview-03-25"
-        
+
         # First API call to Gemini
         print("Making first API call to Gemini...")
         first_call_contents = [myfile, prompt1_text]
         response1 = client.models.generate_content(
             model=model_name,
             contents=first_call_contents,
-            config={"temperature": 0}
-        )
-        
+            config={"temperature": 0})
+
         if not response1 or not hasattr(response1, 'text'):
-            raise ValueError("First API call failed to return valid text response")
-            
+            raise ValueError(
+                "First API call failed to return valid text response")
+
         first_response_text = response1.text
         print("First API call completed successfully")
-        
+
         # Second API call to Gemini
         print("Making second API call to Gemini...")
         second_call_contents = [first_response_text, prompt2_text]
         response2 = client.models.generate_content(
             model=model_name,
             contents=second_call_contents,
-            config={"temperature": 0}
-        )
-        
+            config={"temperature": 0})
+
         if not response2 or not hasattr(response2, 'text'):
-            raise ValueError("Second API call failed to return valid text response")
-            
+            raise ValueError(
+                "Second API call failed to return valid text response")
+
         second_response_text = response2.text
         print("Second API call completed successfully")
-        
+
         # Third API call to OpenAI
         print("Making API call to OpenAI...")
         # The newest OpenAI model is "gpt-4o" which was released May 13, 2024.
         # Do not change this unless explicitly requested by the user
         response3 = client2.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": prompt3_text},
-                {"role": "user", "content": second_response_text}
-            ],
+            messages=[{
+                "role": "system",
+                "content": prompt3_text
+            }, {
+                "role": "user",
+                "content": second_response_text
+            }],
             response_format={"type": "json_object"},
             temperature=0.7,
         )
-        
+
         openai_response_text = response3.choices[0].message.content
         print("OpenAI API call completed successfully")
-        
+
         # Parse the response into a dictionary
         response_dict = json.loads(openai_response_text)
-        
+
         # Clean up by deleting the uploaded file
         try:
             client.files.delete(name=myfile.name)
             print(f"Deleted uploaded file: {myfile.name}")
         except Exception as e:
             print(f"Warning: Failed to delete uploaded file: {e}")
-        
+
         return response_dict
-        
+
     except Exception as e:
         print(f"Error processing video: {str(e)}")
         raise e
