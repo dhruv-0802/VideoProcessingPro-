@@ -1,0 +1,110 @@
+# Prompt: Generalize a Specific Workflow with Intelligent Placeholders (Human + Runtime Context)
+
+## Task
+-You are given a detailed, step-by-step workflow describing how a user completes a task through a web interface or digital tool.
+-Your goal is to **generalize** the workflow while preserving its structure, sequence, and clarity -- but replacing any overly specific details with meaningful, reusable placeholders.
+
+##  Generalization Rules
+
+1. **Preserve the original structure and step-by-step format**:
+   - Include `Step Title`, `Action`, `UI Hint`, `Inputs`, `Tips` or `Decision Points` where available
+
+2. **Only replace values with user placeholders** if they must be provided externally:
+   - e.g., company names, school names, campaign list names, filter terms, custom labels, filter names , person names 
+
+3. **Preserve runtime-resolved information** using descriptive memory-aware placeholders:
+   - Use: `[name of the person you identified earlier]`
+   - Use: `[product found in previous step]`
+   - Use: `[result selected from earlier search]`
+
+4. **Do NOT remove contextual UI hints or clues**  
+   -These are critical for human or agent operators and should remain intact (e.g., "top-left search bar", "Add button in modal").
+
+5. **Do NOT remove the platform names or the application names the user is using**
+   - These things are necessary , Like if the task involves use of Linkedin , we will preserve Linkedin , please determine from reading the task summary what the platform is.
+
+
+## Few Shot Examples of Generalisation
+
+### Task 1 : Open Gmail and read unread mails and press the add to calendar to create a meeting event
+  ** Here we will generalise "Email titled- Regarding Meeting" because it can be anything
+
+### Task 2 : Search for relevant people in the given VC firm on Linkedin 
+** Here we can generalise the term 'blume ventures' as this can be variable everytime and is required as an input by the User
+
+###Task 3: Go through my email and generate replies to emails from AJVC 
+  ** Here we will not generalise AJVC as it is a necessary variable as given by the task from the user 
+
+### **Generalized Tasks**
+
+---
+
+### **Task 1**: Set up a Zoom meeting with Latest interviewee
+
+**Suppose we find the latest interviewee name to be John Abraham , Here we will generalize "John Abraham"** as this is a dynamic value that will change with each user and is not specified as a fixed part of the task.
+
+---
+
+### **Task 2**: Send an email to follow up on a proposal
+
+**Here we will generalize the email subject and follow-up message** because these are dependent on the context and not fixed by the user’s instruction.
+
+---
+
+### **Task 3**: In Notion, download the latest report
+
+**Suppose the latest Report is 'Quaterly Insights' Here we will “Quarterly Insights”** because the report name is a variable input that could be anything the user chooses.
+
+---
+
+### **Task 4**: In Salesforce, filter data using North and Q2
+
+**Here we will generalize “North” and “Q2”** because these are user-provided filter values and can vary with each task execution.
+
+---
+
+### **Task 5**: Search and log a call for Neha Kapoor in CRM
+
+**Here we will generalize “Neha Kapoor”** because the contact name is not fixed and will be provided differently each time by the user.
+
+---
+
+### **Preserved Tasks**
+
+---
+
+### **Task 6**: Go through my email and generate replies to emails from AJVC
+
+**Here we will not generalize AJVC** as it is a necessary variable explicitly provided by the user as part of the task instruction.
+
+---
+
+### **Task 7**: Search “Google Software Engineers” on LinkedIn and list top 4 profiles
+
+**Here we will not generalize “Google Software Engineers”** because the user has clearly defined the search query they want to be used.
+
+---
+
+### **Task 8**: Check campaign updates on Naukri for “Tech Hiring 2024”
+
+**Here we will not generalize “Tech Hiring 2024”** because it is the specific campaign the user asked to review and is part of the task’s intent.
+
+---
+
+### **Task 9**: Find candidates from IIM Ahmedabad on LinkedIn
+
+**Here we will not generalize “IIM Ahmedabad”** since it is part of the search criteria explicitly defined by the user.
+
+---
+
+### **Task 10**: Search for tweets mentioning Ripplica and draft replies
+
+**Here we will not generalize “Ripplica”** because it is the subject the user wants to monitor and respond to — a necessary input.
+
+---
+
+
+
+##  Output Format
+Format your output like it is in the input 
+

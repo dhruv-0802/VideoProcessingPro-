@@ -1,0 +1,49 @@
+# Prompt: Condense Step-by-Step JSON into Single-Line Descriptions
+
+## Input Requirements
+- A JSON object where each step contains:
+  ```json
+  {
+    "description": "text",
+    "timestamp": "HH:MM",
+    "details": {
+      "action": "click|type|scroll|etc.",
+      "ui_element": "location_description",
+      "logic": "purpose_or_outcome"
+    }
+  }
+  ```
+
+## Output Rules
+1. **Format**:
+   ```json
+   {
+     "Step X": {
+       "description": "Step X: [Merged sentence from all fields, and make this a meaningful well constructed direction for agent to follow]"
+     }
+   }
+   ```
+2. **Content Merge Guidelines**:
+   - Combine `action`, `ui_element`, and `logic` into **one natural sentence**.
+   - Preserve:
+     - **Actions** (e.g., `click`, `type`)
+     - **UI Locations** (e.g., "below the post")
+     - **UI Locations** ( Make sure the *complete* details of the UI locations is to be used, whatever is given in the input)
+     - **Purpose** (from `logic` field)
+   
+
+## Example Transformation
+### Input (Step 7)
+
+
+
+## Customization Options
+Add these instructions to modify output:
+- **Tone**:  
+  - Formal: "Navigate to the..."  
+  - Casual: "Go to the..."  
+- **Detail Level**:  
+  - Minimal: Omit UI locations unless critical  
+  - Verbose: Keep all descriptors  
+
+
