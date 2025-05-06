@@ -16,13 +16,14 @@
 
 ## Output Rules
 1. **Format**:
+Do this for all the steps , all I mean all the steps 
    ```json
    {
      "Step X": {
        "description": "Step X: [Merged sentence from all fields, and make this a meaningful well constructed direction for agent to follow]"
      }
    }
-   ```
+   ``
 2. **Content Merge Guidelines**:
    - Combine `action`, `ui_element`, and `logic` into **one natural sentence**.
    - Preserve:
@@ -30,7 +31,13 @@
      - **UI Locations** (e.g., "below the post")
      - **UI Locations** ( Make sure the *complete* details of the UI locations is to be used, whatever is given in the input)
      - **Purpose** (from `logic` field)
-   
+     - **Make sure** the end sentence is readable and free flowing and readable to user , It should be a proper readable and intuitive sentence, that is it should be free of any sort of variables like in the words in these '[]' and instead should be making logical sentences . 
+     -**Carefully understand** the transcript of the process. Understand each step carefully. The user must be giving an example to show how the task is done. Carefully understand what example he has taken if any. While generating the steps make sure you do not give the values from the example given by the user. For Eg (user approves the expense given in the following receipt)
+      Eg: If user is showing the example of creating a ticket on Zendesk, make sure you do not include the sample values he has taken to fill inputs in the ticket in the steps. 
+      Also keep the UI hints generic, do not overfit on the example taken by the user. make ui hints as detailed as possible
+     
+      - ** Language** keep the language crisp , the ui hints detailed and mention the logical reasoning a user is taking clearly 
+   `
 
 ## Example Transformation
 ### Input (Step 7)
@@ -40,8 +47,8 @@
 ## Customization Options
 Add these instructions to modify output:
 - **Tone**:  
-  - Formal: "Navigate to the..."  
-  - Casual: "Go to the..."  
+  - Formal: "Navigate to the..."    
 - **Detail Level**:  
-  - Minimal: Omit UI locations unless critical  
-  - Verbose: Keep all descriptors
+  - Verbose: Keep all descriptors  
+
+

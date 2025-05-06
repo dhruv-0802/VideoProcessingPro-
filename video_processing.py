@@ -2,14 +2,17 @@ import google.genai as genai
 import os
 import time
 from moviepy import VideoFileClip
-from openai import OpenAI
 import json
 import tempfile
+import streamlit as st
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
 
 def process_video_for_task(file_path):
     """
-    Process a video file to extract task instructions using Gemini AI and OpenAI.
+    Process a video file to extract task instructions using Gemini AI.
     
     Args:
         file_path (str): Path to the video file
@@ -18,13 +21,16 @@ def process_video_for_task(file_path):
         dict: Dictionary containing structured task steps
     """
     try:
-        # Use the provided API keys directly
-        gemini_api_key = "AIzaSyBr1ikTLkXjeMlHNdvojZNW37PqR6Rqk4E"
-        openai_api_key = "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"
-
+        # Securely load API keys from environment variables or Streamlit secrets
+        # First try environment variables, then fall back to Streamlit secrets
+        gemini_api_key = os.environ.get("GOOGLE_API_KEY") or st.secrets.get("api_keys", {}).get("google")
+        
+        # Validate API keys
+        if not gemini_api_key:
+            raise ValueError("API keys not found. Please set GOOGLE_API_KEY in environment variables or Streamlit secrets.")
+            
         # Initialize API clients
         client = genai.Client(api_key=gemini_api_key)
-        client2 = OpenAI(api_key=openai_api_key)
 
         # Process video file
         print(f"Processing video file: {file_path}")
@@ -124,7 +130,7 @@ def process_video_for_task(file_path):
 
         # Read second prompt
         try:
-            with open(os.path.join(current_dir, "attached_assets/prompt2.txt"),
+            with open(os.path.join(current_dir, "prompt2.txt"),
                       "r") as file:
                 prompt2_text = file.read()
         except FileNotFoundError:
@@ -162,7 +168,7 @@ def process_video_for_task(file_path):
 
         # Read third prompt
         try:
-            with open(os.path.join(current_dir, "attached_assets/prompt3.txt"),
+            with open(os.path.join(current_dir, "prompt3.txt"),
                       "r") as file:
                 prompt3_text = file.read()
         except FileNotFoundError:
@@ -216,6 +222,7 @@ def process_video_for_task(file_path):
             model=model_name,
             contents=first_call_contents,
             config={"temperature": 0})
+        print(response1.text)
 
         if not response1 or not hasattr(response1, 'text'):
             raise ValueError(
@@ -231,6 +238,7 @@ def process_video_for_task(file_path):
             model=model_name,
             contents=second_call_contents,
             config={"temperature": 0})
+        print(response2.text)
 
         if not response2 or not hasattr(response2, 'text'):
             raise ValueError(
@@ -239,28 +247,35 @@ def process_video_for_task(file_path):
         second_response_text = response2.text
         print("Second API call completed successfully")
 
-        # Third API call to OpenAI
-        print("Making API call to OpenAI...")
-        # The newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-        # Do not change this unless explicitly requested by the user
-        response3 = client2.chat.completions.create(
-            model="gpt-4o",
-            messages=[{
-                "role": "system",
-                "content": prompt3_text
-            }, {
-                "role": "user",
-                "content": second_response_text
-            }],
-            response_format={"type": "json_object"},
-            temperature=0.7,
+        # Third API call to Gemini
+        print("Making third API call to Gemini...")
+        # Define the response schema for structured output
+        from pydantic import BaseModel, Field
+        
+        class Step(BaseModel):
+            description: str = Field(description="Step number: followed by detailed description don't include timestamps, ensure ui hint as per instructions")
+        
+        third_call_contents = [second_response_text, prompt3_text]
+        print("Sending request to Gemini API for structured JSON output...")
+        
+        response3 = client.models.generate_content(
+            model=model_name,
+            contents=third_call_contents,
+            config={
+                'temperature': 0,
+                'response_mime_type': "application/json",
+                'response_schema': list[Step]
+            }
         )
 
-        openai_response_text = response3.choices[0].message.content
-        print("OpenAI API call completed successfully")
+        if not response3 or not hasattr(response3, 'text'):
+            raise ValueError("Third API call failed to return valid text response")
+            
+        gemini_response_text = response3.text
+        print("Third API call to Gemini completed successfully")
 
         # Parse the response into a dictionary
-        response_dict = json.loads(openai_response_text)
+        response_dict = json.loads(gemini_response_text)
 
         # Clean up by deleting the uploaded file
         try:

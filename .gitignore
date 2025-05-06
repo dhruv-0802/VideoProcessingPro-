@@ -1,0 +1,45 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Python virtual environments
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Media files
+*.mp4
+*.mov
+*.avi
+*.mp3
+*.wav
+
+# Large files
+*.zip
+*.tar.gz
+*.7z
+
+# Jupyter Notebook
+.ipynb_checkpoints 

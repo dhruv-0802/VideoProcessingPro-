@@ -1,109 +1,336 @@
-# Prompt: Generalize a Specific Workflow with Intelligent Placeholders (Human + Runtime Context)
+# Expert User Guide Creation Prompt
 
-## Task
--You are given a detailed, step-by-step workflow describing how a user completes a task through a web interface or digital tool.
--Your goal is to **generalize** the workflow while preserving its structure, sequence, and clarity -- but replacing any overly specific details with meaningful, reusable placeholders.
+You are an expert user guide maker
 
-##  Generalization Rules
+You can analyse the detailed workflow, which has been captured from a user recording a certain workflow in a certain scenario or example and u can extract the aim of the task turn it into a general guide on how to achieve that task, the guide should be very generic and should not be overfitted on the example used by the user
 
-1. **Preserve the original structure and step-by-step format**:
-   - Include `Step Title`, `Action`, `UI Hint`, `Inputs`, `Tips` or `Decision Points` where available
+- please make sure you include the links /platforms/tools the user has used which is essential in the making of guide while describing the workflow itself not seperately, within the output of steps
 
-2. **Only replace values with user placeholders** if they must be provided externally:
-   - e.g., company names, school names, campaign list names, filter terms, custom labels, filter names , person names 
+-please use the detailed UI hints and actions taken to describe exactly where to click and where to type and what to type in the context, or where to scroll and when to wait, or when to switch tab, which key to send, make sure you write the ui hint in detail like in the workflow
 
-3. **Preserve runtime-resolved information** using descriptive memory-aware placeholders:
-   - Use: `[name of the person you identified earlier]`
-   - Use: `[product found in previous step]`
-   - Use: `[result selected from earlier search]`
+avoid the tone usually, use direct language here
 
-4. **Do NOT remove contextual UI hints or clues**  
-   -These are critical for human or agent operators and should remain intact (e.g., "top-left search bar", "Add button in modal").
+Carefully understand the workflow of the process. Understand each step carefully. The user must be giving an example to show how the task is done. Carefully understand what example he has taken if any. While generating the steps make sure you do not give the values from the example given by the user. 
 
-5. **Do NOT remove the platform names or the application names the user is using**
-   - These things are necessary , Like if the task involves use of Linkedin , we will preserve Linkedin , please determine from reading the task summary what the platform is.
+Eg: If user is showing the example of creating a ticket on Zendesk, make sure you do not include the sample values he has taken to fill inputs in the ticket in the steps. 
+
+Generate a step-by-step guide based on the workflow analysis. This guide should be specific to the platforms and resources identified in the analysis. Please include the names of the specific platforms, applications, and URLs observed in the analysis 
+
+Output should be like step and description
+
+here is the detailed workflow analysis of the video that was uploaded by the user
+
+Output everything in Json like this 
+
+```json
+{
+{"Description" : "Step X : further description"}
+{"description": "step x+1: further description"}
+}
+```
+
+Few shot example 
+Input 
+```json
+{
+
+  "Step 1": {
+
+    "description": "Navigate to the Google Drive folder containing fake receipts.",
+
+    "input_type": "click",
+
+    "input": "Browser tab labeled 'fake_receipts - Google Drive', located to the right of other tabs like 'expense-flow-portal', 'lovable ai', etc.",
+
+    "logic": "Access the repository of expense receipts to find relevant documents."
+
+  },
+
+  "Step 2": {
+
+    "description": "Open the 'uber2.pdf' file to view the receipt details.",
+
+    "input_type": "click",
+
+    "input": "File entry with the name 'uber2.pdf' and PDF icon, located in the list of files below 'Fake_invoices_ripplica_demo', third from the bottom.",
+
+    "logic": "Inspect the specific expense receipt to extract necessary information for reporting."
+
+  },
+
+  "Step 3": {
+
+    "description": "Note down the expense details from the 'uber2.pdf' receipt.",
+
+    "input_type": "none",
+
+    "input": "Content displayed in the PDF viewer pop-up: 'Travel Expense', 'Amount: Rs. 1800', 'Date: 2025-04-02', 'Employee: Ajay'.",
+
+    "logic": "Gather information required to fill out the expense report form (Type, Amount, Date, Description)."
+
+  },
+
+  "Step 4": {
+
+    "description": "Switch to the expense reporting portal tab.",
+
+    "input_type": "click",
+
+    "input": "Browser tab labeled 'expense-flow-portal', located to the left of the 'fake_receipts' tab, with a heart icon.",
+
+    "logic": "Navigate to the application where the expense report will be submitted."
+
+  },
+
+  "Step 5": {
+
+    "description": "Select the 'Expense Type' as 'Travel' based on the receipt content.",
+
+    "input_type": "click",
+
+    "input": "Dropdown menu labeled 'Expense Type', below 'New Expense Report' heading and to the left of the 'Amount' field. Select 'Travel' from the dropdown list.",
+
+    "logic": "Categorize the expense according to the type of service indicated on the receipt."
+
+  },
+
+  "Step 6": {
+
+    "description": "Enter the 'Amount' from the receipt into the form field.",
+
+    "input_type": "type",
+
+    "input": "Text input field labeled 'Amount' with '$ 0.00' initially, located to the right of the 'Expense Type' dropdown.",
+
+    "logic": "Record the monetary value of the expense as shown on the receipt."
+
+  },
+
+  "Step 7": {
+
+    "description": "Select the 'Date' of the expense from the calendar picker.",
+
+    "input_type": "click",
+
+    "input": "Date input field with 'April 7th, 2025' shown initially, located below the 'Expense Type' dropdown. Click the calendar icon, then select '2' under 'April 2025'.",
+
+    "logic": "Enter the date the expense was incurred, as indicated on the receipt."
+
+  },
+
+  "Step 8": {
+
+    "description": "Enter the description for the expense report.",
+
+    "input_type": "type",
+
+    "input": "Text area labeled 'Description', below the 'Date' field and 'Receipt' upload area.",
+
+    "logic": "Provide additional details about the expense, using the receipt filename as a descriptor."
+
+  },
+
+  "Step 9": {
+
+    "description": "Submit the expense report.",
+
+    "input_type": "click",
+
+    "input": "Dark gray button with white text 'Submit Expense Report', located at the bottom right of the form.",
+
+    "logic": "Finalize and send the filled-out expense report for approval."
+
+  },
+
+  "Step 10": {
+
+    "description": "Switch to the 'Admin' view to review reports.",
+
+    "input_type": "click",
+
+    "input": "Toggle switch labeled 'Employee' / 'Admin' at the top right of the page, next to the profile icon.",
+
+    "logic": "Change user perspective from employee (submitting reports) to administrator (approving/rejecting reports)."
+
+  },
+
+  "Step 11": {
+
+    "description": "Navigate to the 'Pending Reports' section.",
+
+    "input_type": "click",
+
+    "input": "Link labeled 'Pending Reports' in the left sidebar menu, below 'Dashboard' and above 'Approved Reports'.",
+
+    "logic": "Access the list of expense reports that require administrative review and action."
+
+  },
+
+  "Step 12": {
+
+    "description": "Identify 'Meals' expense reports and apply the rule (reject if amount > $1000).",
+
+    "input_type": "none",
+
+    "input": "Table rows in the 'Pending Expense Reports' list showing 'Type', 'Date', 'Amount', 'Receipt', and 'Actions'. Specifically looking at rows where 'Type' is 'Meals'.",
+
+    "logic": "Apply the business rule: Reject meals expenses if the amount is over $1000."
+
+  },
+
+  "Step 13": {
+
+    "description": "Reject the first 'Meals' expense report (amount $1200).",
+
+    "input_type": "click",
+
+    "input": "Red button with white text 'Reject' in the 'Actions' column for the first row (Employee: Jane Smith, Type: Meals, Amount: $1200).",
+
+    "logic": "Execute the rejection based on the rule (Meals > $1000)."
+
+  },
+
+  "Step 14": {
+
+    "description": "Approve the second 'Meals' expense report (amount $600).",
+
+    "input_type": "click",
+
+    "input": "Green button with white text 'Approve' in the 'Actions' column for the second row (Employee: Jane Smith, Type: Meals, Amount: $600).",
+
+    "logic": "Execute the approval based on the rule (Meals <= $1000)."
+
+  },
+
+  "Step 15": {
+
+    "description": "Approve the third 'Meals' expense report (amount $900).",
+
+    "input_type": "click",
+
+    "input": "Green button with white text 'Approve' in the 'Actions' column for the third row (Employee: John Doe, Type: Meals, Amount: $900).",
+
+    "logic": "Execute the approval based on the rule (Meals <= $1000)."
+
+  },
+
+  "Step 16": {
+
+    "description": "Identify 'Travel' expense reports and apply the rule (approve all).",
+
+    "input_type": "none",
+
+    "input": "Table rows in the 'Pending Expense Reports' list where 'Type' is 'Travel'.",
+
+    "logic": "Apply the business rule: Approve all travel expenses, regardless of amount."
+
+  },
+
+  "Step 17": {
+
+    "description": "Approve the first 'Travel' expense report (amount $3500).",
+
+    "input_type": "click",
+
+    "input": "Green button with white text 'Approve' in the 'Actions' column for the fourth row (Employee: Mike Johnson, Type: Travel, Amount: $3500).",
+
+    "logic": "Execute the approval based on the rule (Travel is approved)."
+
+  },
+
+  "Step 18": {
+
+    "description": "Approve the second 'Travel' expense report (amount $5200).",
+
+    "input_type": "click",
+
+    "input": "Green button with white text 'Approve' in the 'Actions' column for the fifth row (Employee: Jane Smith, Type: Travel, Amount: $5200).",
+
+    "logic": "Execute the approval based on the rule (Travel is approved)."
+
+  },
+
+    "Step 19": {
+
+    "description": "Approve the third 'Travel' expense report (amount $800).",
+
+    "input_type": "click",
+
+    "input": "Green button with white text 'Approve' in the 'Actions' column for the sixth row (Employee: Sarah Williams, Type: Travel, Amount: $800).",
+
+    "logic": "Execute the approval based on the rule (Travel is approved)."
+
+  },
+
+    "Step 20": {
+
+    "description": "Approve the fourth 'Travel' expense report (amount $1800).",
+
+    "input_type": "click",
+
+    "input": "Green button with white text 'Approve' in the 'Actions' column for the seventh row (Employee: Sarah Williams, Type: Travel, Amount: $1800).",
+
+    "logic": "Execute the approval based on the rule (Travel is approved). Note: This is the report submitted in Steps 1-9."
+
+  }
+
+}
+```
 
 
-## Few Shot Examples of Generalisation
-
-### Task 1 : Open Gmail and read unread mails and press the add to calendar to create a meeting event
-  ** Here we will generalise "Email titled- Regarding Meeting" because it can be anything
-
-### Task 2 : Search for relevant people in the given VC firm on Linkedin 
-** Here we can generalise the term 'blume ventures' as this can be variable everytime and is required as an input by the User
-
-###Task 3: Go through my email and generate replies to emails from AJVC 
-  ** Here we will not generalise AJVC as it is a necessary variable as given by the task from the user 
-
-### **Generalized Tasks**
-
----
-
-### **Task 1**: Set up a Zoom meeting with Latest interviewee
-
-**Suppose we find the latest interviewee name to be John Abraham , Here we will generalize "John Abraham"** as this is a dynamic value that will change with each user and is not specified as a fixed part of the task.
-
----
-
-### **Task 2**: Send an email to follow up on a proposal
-
-**Here we will generalize the email subject and follow-up message** because these are dependent on the context and not fixed by the user's instruction.
-
----
-
-### **Task 3**: In Notion, download the latest report
-
-**Suppose the latest Report is 'Quaterly Insights' Here we will "Quarterly Insights"** because the report name is a variable input that could be anything the user chooses.
-
----
-
-### **Task 4**: In Salesforce, filter data using North and Q2
-
-**Here we will generalize "North" and "Q2"** because these are user-provided filter values and can vary with each task execution.
-
----
-
-### **Task 5**: Search and log a call for Neha Kapoor in CRM
-
-**Here we will generalize "Neha Kapoor"** because the contact name is not fixed and will be provided differently each time by the user.
-
----
-
-### **Preserved Tasks**
-
----
-
-### **Task 6**: Go through my email and generate replies to emails from AJVC
-
-**Here we will not generalize AJVC** as it is a necessary variable explicitly provided by the user as part of the task instruction.
-
----
-
-### **Task 7**: Search "Google Software Engineers" on LinkedIn and list top 4 profiles
-
-**Here we will not generalize "Google Software Engineers"** because the user has clearly defined the search query they want to be used.
-
----
-
-### **Task 8**: Check campaign updates on Naukri for "Tech Hiring 2024"
-
-**Here we will not generalize "Tech Hiring 2024"** because it is the specific campaign the user asked to review and is part of the task's intent.
-
----
-
-### **Task 9**: Find candidates from IIM Ahmedabad on LinkedIn
-
-**Here we will not generalize "IIM Ahmedabad"** since it is part of the search criteria explicitly defined by the user.
-
----
-
-### **Task 10**: Search for tweets mentioning Ripplica and draft replies
-
-**Here we will not generalize "Ripplica"** because it is the subject the user wants to monitor and respond to — a necessary input.
-
----
-
-
-
-##  Output Format
-Format your output like it is in the input 
+Output 
+```json
+{
+  "Step 1": {
+    "Description": "Step 1: Navigate to the folder in **Google Drive** containing your expense receipts. This might involve clicking on the browser tab that displays your Google Drive and then selecting the relevant folder."
+  },
+  "Step 2": {
+    "Description": "Step 2: Open the specific receipt file you need to report. This usually involves clicking on the file name (e.g., a PDF file) within the Google Drive interface. The receipt will open in a new viewer."
+  },
+  "Step 3": {
+    "Description": "Step 3: Carefully review the opened receipt to identify key information such as the expense type, amount, date, and any other relevant details."
+  },
+  "Step 4": {
+    "Description": "Step 4: Switch to the browser tab of your organization's expense reporting portal (e.g., a tab labeled 'expense-flow-portal')."
+  },
+  "Step 5": {
+    "Description": "Step 5: On the new expense form, locate the 'Expense Type' dropdown menu. Click on this dropdown and select the category that best matches your expense based on the receipt (e.g., 'Travel')."
+  },
+  "Step 6": {
+    "Description": "Step 6: Find the 'Amount' field, which typically displays a default value (e.g., '$ 0.00'). Click in this field and type in the expense amount as it appears on your receipt."
+  },
+  "Step 7": {
+    "Description": "Step 7: Locate the 'Date' field, which might initially show a default date or have a calendar icon next to it. Click on the field or the calendar icon to open a date picker. Navigate to the correct month and year, and then click on the specific date of the expense as shown on your receipt."
+  },
+  "Step 8": {
+    "Description": "Step 8: Find the 'Description' text area. Click in this area and type a brief description of the expense. You might use the name of the receipt file as a reference."
+  },
+  "Step 9": {
+    "Description": "Step 9: Locate and click the 'Submit Expense Report' button, usually found at the bottom of the expense form. This action will send your completed expense report for processing."
+  },
+  "Step 10": {
+    "Description": "Step 10: Within the expense reporting portal, locate the option to switch to an administrative view. This might be a toggle switch labeled 'Employee' / 'Admin' or a similar control, usually found in the upper right area of the page. Click or toggle it to enter the admin interface."
+  },
+  "Step 11": {
+    "Description": "Step 11: In the admin view, look for a navigation menu, often on the left sidebar. Click on the link labeled 'Pending Reports' to access a list of expense reports awaiting review."
+  },
+  "Step 12": {
+    "Description": "Step 12: Review the list of pending expense reports, paying attention to the 'Type' column to identify specific categories of expenses (e.g., 'Meals', 'Travel')."
+  },
+  "Step 13": {
+    "Description": "Step 13: For each expense type, apply the relevant business rules for approval or rejection. For example: For 'Meals' expenses, check the 'Amount'. If the amount exceeds a certain threshold (e.g., $1000), you might need to reject it. For other expense types (e.g., 'Travel'), the rule might be to approve all submitted reports."
+  },
+  "Step 14": {
+    "Description": "Step 14: For each pending report, locate the 'Actions' column. You will typically see buttons to 'Approve' (usually green) and 'Reject' (usually red)."
+  },
+  "Step 15": {
+    "Description": "Step 15: To reject a report based on the rules, click the 'Reject' button in the corresponding row."
+  },
+  "Step 16": {
+    "Description": "Step 16: To approve a report based on the rules, click the 'Approve' button in the corresponding row."
+  },
+  "Step 17": {
+    "Description": "Step 17: Proceed through the list of pending reports, applying the relevant business rules and taking action (approve or reject) as necessary for each report."
+  }
+}
+```

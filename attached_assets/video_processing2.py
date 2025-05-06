@@ -2,16 +2,23 @@ from google import genai
 import os
 import time
 from moviepy import VideoFileClip  # Import for audio extraction
-from openai import OpenAI
 import os
 import json
 import uuid
 import time
 import shutil
 
+from pydantic import BaseModel, Field
+
+class Steps(BaseModel):
+  description: str = Field(description="Step number: followed by detailed description dont include timestamps, ensure ui hint as per instructions")
+
+
+# Get the directory where the script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 # Remove global client initialization
-# client = genai.Client(api_key=os.getenv('GOOGLE_API_KEY'))
-# client2 = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+client = genai.Client(api_key=os.getenv('GOOGLE_API_KEY'))
 
 def create_tutorial_html(tutorial_steps, output_filename="tutorial.html"):
     """Create an HTML page with tutorial steps and screenshots"""
@@ -156,13 +163,9 @@ def create_tutorial_html(tutorial_steps, output_filename="tutorial.html"):
         print(f"Error creating HTML: {str(e)}")
         return False
     
-def get_output(file_path, gemini_api_key, openai_api_key):
+def get_output(file_path):
     myfile = None # Initialize myfile to None
     try:
-        # Initialize clients with provided API keys
-        client = genai.Client(api_key=gemini_api_key)
-        client2 = OpenAI(api_key=openai_api_key)
-        
         # Ensure the moviepy library is installed: pip install moviepy
         video_clip = VideoFileClip(file_path)
         # video_clip.write_videofile(file_path, codec='libx264', audio_codec='aac') # Commented out as it seems unnecessary for upload
@@ -195,11 +198,11 @@ def get_output(file_path, gemini_api_key, openai_api_key):
         print(f"File {myfile.name} is now ACTIVE. Proceeding with content generation (First Call).")
         prompt1_text = ""
         try:
-            with open("prompt_op.txt", "r") as file:
+            with open(os.path.join(script_dir, "prompt_op.txt"), "r") as file:
                 prompt1_text = file.read()
-                print(f"Read prompt from prompt.txt (first call).")
+                print(f"Read prompt from prompt_op.txt (first call).")
         except FileNotFoundError:
-            print("Error: prompt.txt not found.")
+            print("Error: prompt_op.txt not found.")
             # Depending on your application, you might want to handle this differently
             # For now, let's exit as the prompt is crucial
             return None # Or raise an exception
@@ -230,7 +233,7 @@ def get_output(file_path, gemini_api_key, openai_api_key):
 
         prompt2_text = ""
         try:
-            with open("prompt2.txt", "r") as file:
+            with open(os.path.join(script_dir, "prompt2.txt"), "r") as file:
                 prompt2_text = file.read()
                 print(f"Read prompt from prompt2.txt (second call).")
         except FileNotFoundError:
@@ -262,47 +265,56 @@ def get_output(file_path, gemini_api_key, openai_api_key):
             return None # Or raise an exception
         print("--- End Response (Second Call) ---")
 
-        print(f"\n--- Starting Third API Call with OpenAI (Prompt 3 + Output of Call 2) ---")
+        print(f"\n--- Starting Third API Call with Gemini (Prompt 3 + Output of Call 2) ---")
         print(f"Using Prompt 3 and output from second call as input.")
 
         # Read the content of prompt3.txt (Prompt 3)
         prompt3_text = ""
         try:
-            with open("prompt3.txt", "r") as file:
+            with open(os.path.join(script_dir, "prompt3.txt"), "r") as file:
                 prompt3_text = file.read()
                 print(f"Read prompt from prompt3.txt (third call).")
         except FileNotFoundError:
             print("Error: prompt3.txt not found.")
+            exit()
             # Handle missing prompt3.txt appropriately
-            return None # Or raise an exception
+            #return None # Or raise an exception
+        third_call_contents = [second_response_text, prompt3_text]
 
-        print(f"Sending request to OpenAI API for structured JSON output...")
+        print(f"Sending request to Gemini API for structured JSON output...")
         
         try:
-            response3 = client2.chat.completions.create(
-                model="gpt-4o",  # You can change to another model if needed
-                messages=[
-                    {"role": "system", "content": prompt3_text},
-                    {"role": "user", "content": second_response_text}
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.7,
+            print(f"Generating content with {model_name} (Third Call)...")
+            response3 = client.models.generate_content(
+                model=model_name,
+                contents=third_call_contents,
+                config={
+                    'temperature':0.7,
+                    'response_mime_type':"application/json",
+                    'response_schema':list[Steps] 
+                }
             )
             
             # Extract the response text
-            openai_response_text = response3.choices[0].message.content
+            print("\n--- Response (Third Call) ---")
+            print(response3.text) # Print the final output
+            print("--- End Response (Third Call) ---")
             
             # Save the response to a file
-            output_file_path = "openai_response.json"
+            output_file_path = os.path.join(script_dir, "gemini_response.json")
             with open(output_file_path, "w") as output_file:
-                output_file.write(openai_response_text)
+                output_file.write(response3.text)
             
-            # Parse the JSON string into a Python dictionary
-            response_dict = json.loads(openai_response_text)
-            
-            print("\n--- Raw Response (Third Call) ---")
-            print(openai_response_text)
-            print("--- End Raw Response (Third Call) ---")
+            # Parse the JSON string into a Python object
+            try:
+                # Try to parse as JSON
+                response_list = json.loads(response3.text)
+                print(f"Successfully parsed JSON response, type: {type(response_list)}")
+            except json.JSONDecodeError as e:
+                # If JSON parsing fails, just use the text as a single item
+                print(f"Failed to parse JSON response: {e}")
+                # Create a simple list with a single item
+                response_list = [{"description": "Failed to parse JSON. Raw text: " + response3.text[:100] + "..."}]
             
             # Clean up by deleting the uploaded file from Google Cloud
             if myfile: # Only attempt to delete if myfile was successfully uploaded
@@ -320,7 +332,7 @@ def get_output(file_path, gemini_api_key, openai_api_key):
                 print(f"Error deleting local file {file_path}: {e}")
             # --- End local file deletion ---
             
-            return response_dict
+            return response_list
             
         except Exception as e:
             print(f"Error during third API call: {e}")
@@ -359,17 +371,14 @@ def get_output(file_path, gemini_api_key, openai_api_key):
             print(f"Error during local file cleanup: {cleanup_e}")
         return None
 
-def process_video_for_task(video_path, gemini_api_key=None, openai_api_key=None):
+def process_video_for_task(video_path, gemini_api_key=None):
     # Use environment variables as fallback if no keys are provided
     gemini_api_key = gemini_api_key or os.getenv('GOOGLE_API_KEY')
-    openai_api_key = openai_api_key or os.getenv('OPENAI_API_KEY')
     
     # Check if API keys are available
     if not gemini_api_key:
         raise ValueError("Google Gemini API key is required")
-    if not openai_api_key:
-        raise ValueError("OpenAI API key is required")
-        
+    
     # Generate a unique directory name for this task
     unique_dir_name = str(uuid.uuid4())
     base_dir = os.getcwd()
@@ -397,7 +406,7 @@ def process_video_for_task(video_path, gemini_api_key=None, openai_api_key=None)
     # Messages for tutorial step extraction
     
     video_file = video_path
-    response_dict = get_output(video_file, gemini_api_key, openai_api_key)
+    response_dict = get_output(video_file)
     return response_dict
     # The following code is commented out as it's being replaced by get_output
     
